@@ -4,6 +4,7 @@ import Home from "./screens/HomeScreen";
 import Camera from "./screens/CameraScreen";
 import StackNavigation from "./Stack";
 import { Ionicons } from "@expo/vector-icons";
+import CameraScreen from './screens/CameraScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -55,7 +56,7 @@ export default function BottomTabs() {
       />
       <Tab.Screen
         name="Camera"
-        component={Camera}
+        component={CameraScreen}
         options={{
           title: 'Choose Camera',
           tabBarLabel: 'Camera',
