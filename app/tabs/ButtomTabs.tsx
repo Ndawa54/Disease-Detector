@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Home from "./screens/HomeScreen";
-import Camera from "./screens/CameraScreen";
+import Home from "../screens/HomeScreen";
+// import Camera from "../screens/CameraScreen";
 import StackNavigation from "./Stack";
 import { Ionicons } from "@expo/vector-icons";
-import CameraScreen from './screens/CameraScreen';
+import CameraScreen from '../screens/CameraScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -63,6 +63,16 @@ export default function BottomTabs() {
           tabBarIcon: ({ color }) => (
             <Ionicons name="camera" size={25} color={color} />
           )
+        }}
+      />
+      <Tab.Screen
+        name="Tasks"
+        component={StackNavigation}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="checkmark-circle-outline" size={25} color={color} />
+          ),
+          tabBarBadge: notificationCount > 0 ? notificationCount : undefined
         }}
       />
       <Tab.Screen

@@ -16,7 +16,7 @@ const CustomHeader: React.FC = () => {
                 <Ionicons name='menu' size={30}/>
             </TouchableOpacity>
             <Image
-                source={require('../assets/images/logo.png')} // Replace with your logo path
+                source={require('../../assets/images/logo.png')} // Replace with your logo path
                 style={styles.logo}
             />
         </View>

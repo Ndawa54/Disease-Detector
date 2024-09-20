@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import Notification from "./screens/NotificationScreen"
-import Message from "./screens/Messages"
-import Usage from "./screens/Usage"
+import Notification from "../screens/NotificationScreen"
+import Message from "../screens/Messages"
+import Usage from "../screens/Usage"
 
 
 export default function StackNavigation() {
