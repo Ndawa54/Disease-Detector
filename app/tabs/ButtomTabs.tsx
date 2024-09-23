@@ -5,6 +5,7 @@ import Home from "../screens/HomeScreen";
 import StackNavigation from "./Stack";
 import { Ionicons } from "@expo/vector-icons";
 import CameraScreen from '../screens/CameraScreen';
+import Task from '../screens/Task';
 
 const Tab = createBottomTabNavigator();
 
@@ -67,7 +68,7 @@ export default function BottomTabs() {
       />
       <Tab.Screen
         name="Tasks"
-        component={StackNavigation}
+        component={Task}
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="checkmark-circle-outline" size={25} color={color} />
