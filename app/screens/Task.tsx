@@ -1,27 +1,87 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { Text, StyleSheet, View, ScrollView, TouchableOpacity, Modal, Pressable } from "react-native";
+import { useState, useEffect } from "react";
+import { Text, StyleSheet, View, ScrollView, TouchableOpacity, Modal, Pressable, RefreshControl } from "react-native";
+import BASE_URL from "../API";
 
 export default function Task() {
     const [filter, setFilter] = useState('all'); // State to handle the selected filter
     const [modalVisible, setModalVisible] = useState(false); // State to handle dropdown visibility
+    const [notifications, setNotifications] = useState<Notification[]>([]); // State for notifications fetched from API
+    const [criticals, setCriticals] = useState<Critical[]>([]); // State for critical levels fetched from API
+    const [isRefreshing, setIsRefreshing] = useState(false); // State for refreshing
 
-    // Data for tasks (you can replace it with dynamic data later)
-    const tasks = [
-        { id: 1, name: "Rusts", criticality: "high" },
-        { id: 2, name: "Task", criticality: "medium" },
-        { id: 3, name: "Task", criticality: "low" },
-        { id: 4, name: "Rusts", criticality: "high" },
-        { id: 5, name: "Task", criticality: "medium" },
-        { id: 6, name: "Rusts", criticality: "high" },
-        { id: 7, name: "Task", criticality: "low" },
-    ];
+    interface Notification {
+        id: number;
+        name: string;
+    }
 
-    // Filter function
-    const filteredTasks = tasks.filter(task => filter === 'all' || task.criticality === filter);
+    interface Critical {
+        name: string;
+        critical_level: string;
+    }
+
+    // Fetch notifications from the notifications table
+    const fetchNotifications = async () => {
+        setIsRefreshing(true); // Set refreshing to true when fetching data
+        try {
+            const response = await fetch(`${BASE_URL}/notifications`); // Replace with your API endpoint
+            const data = await response.json();
+            setNotifications(data); // Assuming data is an array of notification objects
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    // Fetch critical levels from the criticals table
+    const fetchCriticals = async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/criticals`); // Replace with your API endpoint
+            const data = await response.json();
+            setCriticals(data); // Assuming data is an array of critical objects
+        } catch (error) {
+            console.error('Error fetching criticals:', error);
+        } finally {
+            setIsRefreshing(false); // Set refreshing to false after fetching data
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications(); // Fetch notifications on component mount
+        fetchCriticals(); // Fetch critical levels on component mount
+    }, []); // Empty dependency array to run once on component mount
+
+    // Group notifications by name and count occurrences
+    const groupedNotifications = notifications.reduce<{ [key: string]: { name: string; count: number } }>(
+        (acc, notification) => {
+            if (acc[notification.name]) {
+                acc[notification.name].count += 1;
+            } else {
+                acc[notification.name] = { name: notification.name, count: 1 };
+            }
+            return acc;
+        },
+        {}
+    );
+
+    // Convert grouped notifications into an array for rendering
+    const groupedNotificationsArray = Object.values(groupedNotifications);
+
+    // Merge notifications with their critical levels
+    const mergedTasks = groupedNotificationsArray.map((notification) => {
+        const criticalInfo = criticals.find(critical => critical.name === notification.name) || { critical_level: 'low' }; // Default to 'low' if no match
+        return { ...notification, critical_level: criticalInfo.critical_level };
+    });
+
+    // Filter tasks based on selected critical level
+    const filteredTasks = mergedTasks.filter(task => filter === 'all' || task.critical_level.toLowerCase() === filter);
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView 
+            style={styles.container} 
+            refreshControl={
+                <RefreshControl refreshing={isRefreshing} onRefresh={() => { fetchNotifications(); fetchCriticals(); }} />
+            }
+        >
             {/* Filter and Legend Container */}
             <View style={styles.topContainer}>
                 {/* Filter Dropdown Button */}
@@ -35,18 +95,17 @@ export default function Task() {
 
                 {/* Legend */}
                 <View style={styles.legend}>
-                    {/* <Text style={styles.legendText}>Legend:</Text> */}
                     <View style={styles.legendItem}>
                         <View style={[styles.legendColor, { backgroundColor: '#FF8A80' }]} />
-                        <Text style={styles.legendLabel}>High </Text>
+                        <Text style={styles.legendLabel}>High</Text>
                     </View>
                     <View style={styles.legendItem}>
                         <View style={[styles.legendColor, { backgroundColor: '#FFD54F' }]} />
-                        <Text style={styles.legendLabel}>Medium </Text>
+                        <Text style={styles.legendLabel}>Medium</Text>
                     </View>
                     <View style={styles.legendItem}>
                         <View style={[styles.legendColor, { backgroundColor: '#81C784' }]} />
-                        <Text style={styles.legendLabel}>Low </Text>
+                        <Text style={styles.legendLabel}>Low</Text>
                     </View>
                 </View>
             </View>
@@ -90,11 +149,11 @@ export default function Task() {
 
             {/* Task List */}
             {filteredTasks.map(task => (
-                <View key={task.id} style={styles[task.criticality]}>
-                    <Text style={styles.title}>{task.name}</Text>
+                <View key={task.name} style={styles[task.critical_level]}>
+                    {/* Display the task name along with the total count */}
+                    <Text style={styles.title}>{task.name} ({task.count})</Text>
                 </View>
             ))}
-
         </ScrollView>
     )
 }

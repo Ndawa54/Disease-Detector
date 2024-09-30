@@ -5,12 +5,11 @@ import { FlatList } from "react-native-gesture-handler";
 import { Audio } from 'expo-av';
 import BASE_URL from "../API";
 
-const img = require('../../assets/images/wedds.png');
-const img0 = require('../../assets/images/dry.jpg');
-const img1 = require('../../assets/images/diseasw.png');
 
-export default function Notification({ navigation }: any) {
-    const [data, setData] = useState<any[]>([]);
+const img = require('../../assets/images/wedds.png');
+
+export default function Notification({ navigation }: { navigation: any }) {
+    const [data, setData] = useState<{ name: string; type: string }[]>([]);
     const [previousDataLength, setPreviousDataLength] = useState<number>(0);
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [isFetching, setIsFetching] = useState<boolean>(false);
@@ -23,7 +22,7 @@ export default function Notification({ navigation }: any) {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            const result = await response.json();
+            const result: { name: string; type: string }[] = await response.json();
 
             if (result.length > previousDataLength) {
                 await playSound();
@@ -32,40 +31,42 @@ export default function Notification({ navigation }: any) {
             }
 
             setData(result);
-            
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
             setIsFetching(false);
         }
-    }
+    };
 
     const playSound = async () => {
         try {
-            const { sound } = await Audio.Sound.createAsync(require('../../assets/sounds/notification.wav'));
-            setSound(sound);
-            await sound.playAsync();
+            console.log("Attempting to load sound");
+            const { sound: newSound } = await Audio.Sound.createAsync(
+                require('../../assets/sounds/notification.wav')
+            );
+            setSound(newSound);
+            await newSound.playAsync();
+            console.log("Sound played successfully");
         } catch (error) {
             console.error('Error playing sound:', error);
         }
-    }
+    };
+    
 
     const showAlert = () => {
-        Alert.alert(
-            "Notification",
-            "Detected!",
-            [{ text: "OK" }]
-        );
-    }
+        Alert.alert("Notification", "Detected!", [{ text: "OK" }]);
+    };
 
     useEffect(() => {
         fetchData(); // Initial fetch
-        const interval = setInterval(fetchData, 60000); // Fetch data every 10 seconds
+        const interval = setInterval(fetchData, 60000); // Fetch data every 60 seconds
         return () => {
             clearInterval(interval); // Clear interval on component unmount
-            sound?.unloadAsync(); // Unload sound on component unmount
-        }
-    }, []);
+            if (sound) {
+                sound.unloadAsync(); // Unload sound on component unmount
+            }
+        };
+    }, [sound]);
 
     return (
         <View style={styles.container}>
@@ -75,7 +76,7 @@ export default function Notification({ navigation }: any) {
                 renderItem={({ item }) => (
                     <Pressable onPress={() => {
                         navigation.navigate('Message', {
-                            name: `${item.name}`
+                            name: item.name,
                         });
                     }}>
                         <View style={styles.card}>
