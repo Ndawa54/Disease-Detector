@@ -14,7 +14,7 @@ const click = () => {
 }
 
 
-export default function Login() {
+export default function Login({navigation}: any) {
     const [email,setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [errors, setErrors] = useState<any>({}) 
@@ -34,6 +34,7 @@ export default function Login() {
             setEmail("")
             setPassword("")
             setErrors({})
+            navigation.navigate('HomeScreen')   
         }
     }
 

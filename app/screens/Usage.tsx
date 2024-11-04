@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { combineTransition } from "react-native-reanimated";
 import BASE_URL from "../API";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 export default function Usage({ route }: any) {
     const [data, setData] = useState<any[]>([])
@@ -43,8 +44,30 @@ export default function Usage({ route }: any) {
                             <Text style={styles.text}>Application Method</Text>
                             <Text>Spray</Text>
                         </View>
-                        <View>
+                        <View >
                             <Text style={styles.text}>Safety Precautions</Text>
+
+                            <View style={styles.safety_icons}>
+                                <Image source={require('../../assets/images/children.png')} style={styles.images}/>
+                                <Text style={styles.txt}>Keep it away and out of reach of children </Text>
+                            </View>
+                            <View style={styles.safety_icons}>
+                                <Image source={require('../../assets/images/mask.png')} style={styles.images}/>
+                                <Text style={styles.txt}>Wear protection over nose and mouth</Text>
+                            </View>
+                            <View style={styles.safety_icons}>
+                                <Image source={require('../../assets/images/ggles.png')} style={styles.images}/>
+                                <Text style={styles.txt}>Wear eye Protection</Text>
+                            </View>
+                            <View style={styles.safety_icons}>
+                                <Image source={require('../../assets/images/gloves.png')} style={styles.images}/>
+                                <Text style={styles.txt}>Wear long rubber gloves</Text>
+                            </View>
+                            <View style={styles.safety_icons}>
+                                <MaterialIcons name='sanitizer' size={50}/>
+                                <Text style={styles.txt}>Wash the hands with clean water</Text>
+            
+                            </View>
                         </View>
                         
                     </View>
@@ -75,5 +98,24 @@ const styles = StyleSheet.create({
     textApplication: {
         fontStyle: 'italic',
         marginVertical: 7
+    },
+    images: {
+        width: 60,
+        height: 60,
+    },
+    safety_icons:{
+        // flexDirection: 'row',
+        // justifyContent: 'space-between',
+        margin: 8,
+    },
+    txt:{
+        position:  'absolute',
+        top:   20,
+        left:   80,
+        fontSize: 16,
+        fontWeight: 'bold'
+
+
+
     }
 })
