@@ -24,11 +24,11 @@ export default function Notification({ navigation }: { navigation: any }) {
             }
             const result: { name: string; type: string }[] = await response.json();
 
-            if (result.length > previousDataLength) {
-                await playSound();
-                showAlert();
-                setPreviousDataLength(result.length);
-            }
+            // if (result.length > previousDataLength) {
+            //     await playSound();
+            //     showAlert();
+            //     setPreviousDataLength(result.length);
+            // }
 
             setData(result);
         } catch (error) {
@@ -38,19 +38,19 @@ export default function Notification({ navigation }: { navigation: any }) {
         }
     };
 
-    const playSound = async () => {
-        try {
-            console.log("Attempting to load sound");
-            const { sound: newSound } = await Audio.Sound.createAsync(
-                require('../../assets/sounds/notification.wav')
-            );
-            setSound(newSound);
-            await newSound.playAsync();
-            console.log("Sound played successfully");
-        } catch (error) {
-            console.error('Error playing sound:', error);
-        }
-    };
+    // const playSound = async () => {
+    //     try {
+    //         console.log("Attempting to load sound");
+    //         const { sound: newSound } = await Audio.Sound.createAsync(
+    //             require('../../assets/sounds/notification.wav')
+    //         );
+    //         setSound(newSound);
+    //         await newSound.playAsync();
+    //         console.log("Sound played successfully");
+    //     } catch (error) {
+    //         console.error('Error playing sound:', error);
+    //     }
+    // };
     
 
     const showAlert = () => {
