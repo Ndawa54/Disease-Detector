@@ -37,12 +37,15 @@ export default function Usage({ route }: any) {
                 renderItem={({ item }) => (
                     
                     <View style={styles.usageCard}>
-                        <Text>{name}</Text>
+                        <Text style={styles.txt_header}>{name}</Text>
                         <Text style={styles.text}>Application instruction</Text>
                         <Text style={styles.textApplication}>{item.treatment}</Text>
                         <View>
                             <Text style={styles.text}>Application Method</Text>
-                            <Text>Spray</Text>
+                            <View style={styles.safety_icons}>
+                                <Image source={require('../../assets/images/spra.png')} style={styles.images}/>
+                                <Text style={styles.txt}>Spray </Text>
+                            </View>
                         </View>
                         <View >
                             <Text style={styles.text}>Safety Precautions</Text>
@@ -71,6 +74,7 @@ export default function Usage({ route }: any) {
                         </View>
                         
                     </View>
+                    
                 )}
             />
         </View>
@@ -97,7 +101,8 @@ const styles = StyleSheet.create({
     },
     textApplication: {
         fontStyle: 'italic',
-        marginVertical: 7
+        marginVertical: 7,
+        fontSize: 15
     },
     images: {
         width: 60,
@@ -114,8 +119,10 @@ const styles = StyleSheet.create({
         left:   80,
         fontSize: 16,
         fontWeight: 'bold'
-
-
-
+    },
+    txt_header:{
+        textAlign: 'center',
+        fontSize: 29,
+        fontWeight: 'bold'
     }
 })
