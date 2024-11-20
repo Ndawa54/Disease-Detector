@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Image, View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import * as FileSystem from 'expo-file-system';
 
 const CameraScreen: React.FC = () => {
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [cameraViewRef, setCameraViewRef] = useState<any>(null);
-    const [imageUri, setImageUri] = useState<string | null>(null);
-    const [base64Image, setBase64Image] = useState<string | null>(null);
-    const [prediction, setPrediction] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [prediction, setPrediction] = useState<any>(null);
+    const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
 
     // Request permission to use the camera
     useEffect(() => {
@@ -19,16 +18,27 @@ const CameraScreen: React.FC = () => {
         })();
     }, []);
 
+    // Start automatic image capturing
+    useEffect(() => {
+        if (hasPermission) {
+            const id = setInterval(captureImage, 5000); // Capture image every 5 seconds
+            setIntervalId(id);
+        }
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId); // Clear interval on unmount
+            }
+        };
+    }, [hasPermission]);
+
     const captureImage = async (): Promise<void> => {
         if (cameraViewRef) {
             const photo = await cameraViewRef.takePictureAsync();
-            setImageUri(photo.uri);
-
             try {
                 const base64 = await FileSystem.readAsStringAsync(photo.uri, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
-                setBase64Image(base64);
+                await predictImage(base64); // Automatically predict after capturing
             } catch (error) {
                 console.error('Error converting image to base64:', error);
             }
@@ -54,7 +64,6 @@ const CameraScreen: React.FC = () => {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Error response from API:', errorText);
-                setLoading(false); // Stop loading indicator on error
                 return;
             }
 
@@ -67,11 +76,6 @@ const CameraScreen: React.FC = () => {
         }
     };
 
-    const captureAgain = () => {
-        setImageUri(null); // Reset imageUri to go back to camera view
-        setPrediction(null); // Clear the previous prediction
-    };
-
     if (hasPermission === null) {
         return <View />;
     }
@@ -81,27 +85,11 @@ const CameraScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            {!imageUri ? (
-                <CameraView style={styles.cameraView} ref={(ref) => setCameraViewRef(ref)}>
-                    <View style={styles.cameraButtonContainer}>
-                        <TouchableOpacity style={styles.cameraButton} onPress={captureImage}>
-                            <Text style={styles.buttonText}>Capture Image</Text>
-                        </TouchableOpacity>
-                    </View>
-                </CameraView>
-            ) : (
-                <View>
-                    <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-                    <View style={styles.btnContainer}>
-                        <TouchableOpacity onPress={() => base64Image && predictImage(base64Image)}>
-                            <Text style={styles.anlyBtn}>Analyse Image</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={captureAgain}>
-                            <Text style={styles.anlyBtn}>Capture Again</Text>
-                        </TouchableOpacity>
-                    </View>
+            <CameraView style={styles.cameraView} ref={(ref) => setCameraViewRef(ref)}>
+                <View style={styles.cameraButtonContainer}>
+                    <Text style={styles.buttonText}>Analyzing...</Text>
                 </View>
-            )}
+            </CameraView>
             {loading && (
                 <View style={{ marginVertical: 20 }}>
                     <ActivityIndicator size="large" color="#0000ff" />
@@ -109,13 +97,12 @@ const CameraScreen: React.FC = () => {
                 </View>
             )}
             {prediction && (
-                <View>
-                    <Text></Text>
-                    {prediction.predictions && prediction.predictions.length > 0 ? (
-                        <Text style={styles.predText}>{prediction.predictions[0].class}</Text>
-                    ) : (
-                        <Text style={styles.predText}>No predictions found</Text>
-                    )}
+                <View style={styles.predictionContainer}>
+                    <Text style={styles.predText}>
+                        {prediction.predictions && prediction.predictions.length > 0
+                            ? prediction.predictions[0].class
+                            : 'No predictions found'}
+                    </Text>
                 </View>
             )}
         </View>
@@ -138,39 +125,31 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
         marginBottom: 20,
     },
-    cameraButton: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 10,
-    },
     buttonText: {
         fontSize: 16,
         color: '#000',
     },
-    imagePreview: {
-        width: 350,
-        height: 350,
-        alignSelf: 'center',
+    predictionContainer: {
+        padding: 20,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
         margin: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
     },
     predText: {
         textAlign: 'center',
         fontSize: 20,
-        fontWeight: 'bold'
-    },
-    btnContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        margin: 7,
-    },
-    anlyBtn: {
-        backgroundColor: '#90EE90',
-        color: '#006400',
-        padding: 15,
-        fontSize: 18,
         fontWeight: 'bold',
-        borderRadius: 15
-    }
+        color: '#333',
+    },
 });
 
 export default CameraScreen;
