@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Image, View, Text, ActivityIndicator, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import * as FileSystem from 'expo-file-system';
+import BASE_URL from '../API';
 
 const CameraScreen: React.FC = () => {
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [cameraViewRef, setCameraViewRef] = useState<any>(null);
-    const [imageUri, setImageUri] = useState<string | null>(null);
-    const [base64Image, setBase64Image] = useState<string | null>(null);
     const [prediction, setPrediction] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
-    // Request permission to use the camera
     useEffect(() => {
         (async () => {
             const { status } = await Camera.requestCameraPermissionsAsync();
@@ -19,16 +17,15 @@ const CameraScreen: React.FC = () => {
         })();
     }, []);
 
-    const captureImage = async (): Promise<void> => {
+    const analyzeVideo = async (): Promise<void> => {
         if (cameraViewRef) {
-            const photo = await cameraViewRef.takePictureAsync();
-            setImageUri(photo.uri);
+            const photo = await cameraViewRef.takePictureAsync({ skipProcessing: true });
 
             try {
                 const base64 = await FileSystem.readAsStringAsync(photo.uri, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
-                setBase64Image(base64);
+                await predictImage(base64);
             } catch (error) {
                 console.error('Error converting image to base64:', error);
             }
@@ -39,8 +36,8 @@ const CameraScreen: React.FC = () => {
         const apiKey = '7JDhTHZb92dqMa8JVme2';
         const modelEndpoint = `https://detect.roboflow.com/leaffs/2?api_key=${apiKey}`;
 
-        setLoading(true); // Start loading indicator
-        setPrediction(null); // Reset previous prediction
+        setLoading(true);
+        setPrediction(null);
 
         try {
             const response = await fetch(modelEndpoint, {
@@ -54,22 +51,48 @@ const CameraScreen: React.FC = () => {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Error response from API:', errorText);
-                setLoading(false); // Stop loading indicator on error
                 return;
             }
 
             const data = await response.json();
             setPrediction(data);
+
+            if (data?.predictions?.length > 0) {
+                const predictedName = data.predictions[0].class;
+                await sendPredictionToAPI(predictedName);
+            }
         } catch (error) {
             console.error('Error making prediction:', error);
         } finally {
-            setLoading(false); // Stop loading indicator
+            setLoading(false);
         }
     };
 
-    const captureAgain = () => {
-        setImageUri(null); // Reset imageUri to go back to camera view
-        setPrediction(null); // Clear the previous prediction
+    const sendPredictionToAPI = async (name: string): Promise<void> => {
+        const apiUrl = `${BASE_URL}/notifications`; // Replace with your Laravel API endpoint
+        const payload = {
+            name: name,
+            type: 'Disease', // Replace with your desired text
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response from Laravel API:', errorText);
+            } else {
+                console.log('Prediction sent successfully:', payload);
+            }
+        } catch (error) {
+            console.error('Error sending prediction to API:', error);
+        }
     };
 
     if (hasPermission === null) {
@@ -81,43 +104,28 @@ const CameraScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            {!imageUri ? (
-                <CameraView style={styles.cameraView} ref={(ref) => setCameraViewRef(ref)}>
-                    <View style={styles.cameraButtonContainer}>
-                        <TouchableOpacity style={styles.cameraButton} onPress={captureImage}>
-                            <Text style={styles.buttonText}>Capture Image</Text>
-                        </TouchableOpacity>
+            <CameraView style={styles.cameraView} ref={(ref) => setCameraViewRef(ref)}>
+                <View style={styles.cameraButtonContainer}>
+                    <TouchableOpacity style={styles.cameraButton} onPress={analyzeVideo}>
+                        <Text style={styles.buttonText}>Analyze Video</Text>
+                    </TouchableOpacity>
+                </View>
+                {loading && (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#0000ff" />
+                        <Text style={styles.predText}>Analyzing...</Text>
                     </View>
-                </CameraView>
-            ) : (
-                <View>
-                    <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-                    <View style={styles.btnContainer}>
-                        <TouchableOpacity onPress={() => base64Image && predictImage(base64Image)}>
-                            <Text style={styles.anlyBtn}>Analyse Image</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={captureAgain}>
-                            <Text style={styles.anlyBtn}>Capture Again</Text>
-                        </TouchableOpacity>
+                )}
+                {prediction && (
+                    <View style={styles.predictionOverlay}>
+                        {prediction.predictions && prediction.predictions.length > 0 ? (
+                            <Text style={styles.predText}>{prediction.predictions[0].class}</Text>
+                        ) : (
+                            <Text style={styles.predText}>No predictions found</Text>
+                        )}
                     </View>
-                </View>
-            )}
-            {loading && (
-                <View style={{ marginVertical: 20 }}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text style={styles.predText}>Analyzing image...</Text>
-                </View>
-            )}
-            {prediction && (
-                <View>
-                    <Text></Text>
-                    {prediction.predictions && prediction.predictions.length > 0 ? (
-                        <Text style={styles.predText}>{prediction.predictions[0].class}</Text>
-                    ) : (
-                        <Text style={styles.predText}>No predictions found</Text>
-                    )}
-                </View>
-            )}
+                )}
+            </CameraView>
         </View>
     );
 };
@@ -147,30 +155,27 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#000',
     },
-    imagePreview: {
-        width: 350,
-        height: 350,
-        alignSelf: 'center',
-        margin: 20,
+    loadingContainer: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{ translateX: -50 }, { translateY: -50 }],
+        alignItems: 'center',
     },
     predText: {
         textAlign: 'center',
         fontSize: 20,
-        fontWeight: 'bold'
-    },
-    btnContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        margin: 7,
-    },
-    anlyBtn: {
-        backgroundColor: '#90EE90',
-        color: '#006400',
-        padding: 15,
-        fontSize: 18,
         fontWeight: 'bold',
-        borderRadius: 15
-    }
+        color: '#fff',
+    },
+    predictionOverlay: {
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        padding: 10,
+        borderRadius: 5,
+    },
 });
 
 export default CameraScreen;
