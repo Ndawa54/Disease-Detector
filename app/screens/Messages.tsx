@@ -8,7 +8,7 @@ export default function Message({ route,navigation }: any) {
     const img = require('../../assets/images/spraying.png');
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const { name } = route.params;
+    const { name, cause } = route.params;
 
     const fetchData = async () => {
         setLoading(true); // Start loading
@@ -40,9 +40,7 @@ export default function Message({ route,navigation }: any) {
                 <Text style={styles.header}>{name}</Text>
                 <Text style={styles.textTitle}>Cause</Text>
                 <Text style={styles.context}>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident
-                    ipsa non deserunt nulla tenetur earum aperiam quos at, vitae ipsam in
-                    commodi reprehenderit nesciunt labore facere perferendis ut architecto maiores!
+                    {cause}
                 </Text>
                 <Text style={styles.context}>
                     Lorem ipsum dolor sit amet consectetur adipisicing elit. Provident

@@ -5,6 +5,7 @@ import Analytics from '../screens/AnalyticsScreen';
 import ButtomTabs from './ButtomTabs';
 import CustomHeader from './CustomeDrawer'; // Import the custom header component
 import WeatherScreen from '../screens/Weather';
+import Login from '../components/Login';
 
 const Drawer = createDrawerNavigator();
 
@@ -24,6 +25,7 @@ export default function DrawerNavigator() {
             />
             <Drawer.Screen name="Analytics" component={Analytics} />
             <Drawer.Screen name="Weather" component={WeatherScreen} />
+            <Drawer.Screen name="Login" component={Login} />
             
         </Drawer.Navigator>
     );

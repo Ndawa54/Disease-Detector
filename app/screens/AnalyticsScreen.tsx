@@ -1,82 +1,135 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View, Dimensions } from "react-native";
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View, Dimensions, ActivityIndicator, RefreshControl } from "react-native";
 import { LineChart, BarChart, PieChart } from "react-native-chart-kit";
+import BASE_URL from '../API';
 
 const screenWidth = Dimensions.get("window").width;
 
+type ChartData = {
+    labels: string[];
+    datasets: {
+        data: number[];
+    }[];
+};
+
+type PieChartData = {
+    name: string;
+    population: number;
+    color: string;
+    legendFontColor: string;
+    legendFontSize: number;
+}[];
+
 export default function Analytics({ navigation }: any) {
-    // Sample data for the charts
-    const weedDiseaseData = {
-        labels: ["Fungi", "Rusts", "ArmyWorm", "Disease 2"],
-        datasets: [
-            {
-                data: [20, 45, 28, 80],
-            },
-        ],
-    };
+    const [weedDiseaseData, setWeedDiseaseData] = useState<ChartData | null>(null);
+    const [frequentDetectionData, setFrequentDetectionData] = useState<PieChartData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false); // State for pull-to-refresh
 
     const rainfallData = {
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         datasets: [
             {
-                data: [0, 0, 20, 50, 0, 0, 10],
+                data: [30, 10, 2, 10, 0, 0, 10],
             },
         ],
     };
-
-    const frequentDetectionData = [
-        {
-            name: "Chisoso",
-            population: 50,
-            color: "rgba(131, 167, 234, 1)",
-            legendFontColor: "#7F7F7F",
-            legendFontSize: 15,
-        },
-        {
-            name: "Fungi",
-            population: 30,
-            color: "#F00",
-            legendFontColor: "#7F7F7F",
-            legendFontSize: 15,
-        },
-        {
-            name: "Rust",
-            population: 20,
-            color: "red",
-            legendFontColor: "#7F7F7F",
-            legendFontSize: 15,
-        },
-        {
-            name: "Disease 2",
-            population: 40,
-            color: "#ffffff",
-            legendFontColor: "#7F7F7F",
-            legendFontSize: 15,
-        },
-    ];
 
     const chartConfig = {
         backgroundGradientFrom: "#1E2923",
         backgroundGradientTo: "#08130D",
         color: (opacity = 1) => `rgba(26, 255, 255, ${opacity})`,
-        strokeWidth: 2, // optional, default 3
+        strokeWidth: 2,
         barPercentage: 1,
-        useShadowColorFromDataset: false, // optional
+        useShadowColorFromDataset: false,
     };
 
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${BASE_URL}/notifications`); // Replace with your API endpoint
+            const data = await response.json();
+
+            const counts = data.reduce((acc: any, item: any) => {
+                acc[item.name] = (acc[item.name] || 0) + 1;
+                return acc;
+            }, {});
+
+            setWeedDiseaseData({
+                labels: Object.keys(counts),
+                datasets: [
+                    {
+                        data: Object.values(counts),
+                    },
+                ],
+            });
+
+            const pieData = Object.keys(counts).map((name, index) => ({
+                name,
+                population: counts[name],
+                color: getRandomColor(index),
+                legendFontColor: "#7F7F7F",
+                legendFontSize: 15,
+            }));
+
+            setFrequentDetectionData(pieData);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchData();
+        setRefreshing(false);
+    };
+
+    const getRandomColor = (index: number) => {
+        const colors = [
+            "#ff6384",
+            "#36a2eb",
+            "#ffcd56",
+            "#4bc0c0",
+            "#9966ff",
+            "#ff9f40",
+        ];
+        return colors[index % colors.length];
+    };
+
+    if (loading && !refreshing) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+        );
+    }
+
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView
+            style={styles.container}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+        >
             <Text style={styles.title}>Weeds & Diseases Detected</Text>
-            <BarChart
-                style={styles.chart}
-                data={weedDiseaseData}
-                width={screenWidth - 20}
-                height={250}
-                chartConfig={chartConfig}
-                verticalLabelRotation={0}
-                yAxisLabel="" // Add this prop
-                yAxisSuffix="" // Add this prop
-            />
+            {weedDiseaseData && (
+                <BarChart
+                    style={styles.chart}
+                    data={weedDiseaseData}
+                    width={screenWidth - 20}
+                    height={250}
+                    chartConfig={chartConfig}
+                    verticalLabelRotation={0}
+                    yAxisLabel=""
+                    yAxisSuffix=""
+                />
+            )}
 
             <Text style={styles.title}>Expected Rainfall</Text>
             <LineChart
@@ -89,17 +142,19 @@ export default function Analytics({ navigation }: any) {
             />
 
             <Text style={styles.title}>Most Frequently Detected</Text>
-            <PieChart
-                style={styles.chart}
-                data={frequentDetectionData}
-                width={screenWidth - 20}
-                height={220}
-                chartConfig={chartConfig}
-                accessor={"population"}
-                backgroundColor={"transparent"}
-                paddingLeft={"15"}
-                absolute
-            />
+            {frequentDetectionData && (
+                <PieChart
+                    style={styles.chart}
+                    data={frequentDetectionData}
+                    width={screenWidth - 20}
+                    height={220}
+                    chartConfig={chartConfig}
+                    accessor={"population"}
+                    backgroundColor={"transparent"}
+                    paddingLeft={"15"}
+                    absolute
+                />
+            )}
         </ScrollView>
     );
 }
@@ -119,5 +174,11 @@ const styles = StyleSheet.create({
     chart: {
         marginVertical: 10,
         borderRadius: 16,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f5f5f5',
     },
 });

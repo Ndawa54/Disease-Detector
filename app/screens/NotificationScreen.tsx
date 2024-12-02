@@ -9,7 +9,7 @@ import BASE_URL from "../API";
 const img = require('../../assets/images/wedds.png');
 
 export default function Notification({ navigation }: { navigation: any }) {
-    const [data, setData] = useState<{ name: string; type: string }[]>([]);
+    const [data, setData] = useState<{ name: string; type: string; cause: string }[]>([]);
     const [previousDataLength, setPreviousDataLength] = useState<number>(0);
     const [sound, setSound] = useState<Audio.Sound | null>(null);
     const [isFetching, setIsFetching] = useState<boolean>(false);
@@ -77,6 +77,7 @@ export default function Notification({ navigation }: { navigation: any }) {
                     <Pressable onPress={() => {
                         navigation.navigate('Message', {
                             name: item.name,
+                            cause: item.cause,
                         });
                     }}>
                         <View style={styles.card}>

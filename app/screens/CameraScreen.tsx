@@ -19,7 +19,7 @@ const CameraScreen: React.FC = () => {
 
     const analyzeVideo = async (): Promise<void> => {
         if (cameraViewRef) {
-            const photo = await cameraViewRef.takePictureAsync({ skipProcessing: true });
+            const photo = await cameraViewRef.takePictureAsync({ skipProcessing: true, mute: true });
 
             try {
                 const base64 = await FileSystem.readAsStringAsync(photo.uri, {
@@ -33,8 +33,14 @@ const CameraScreen: React.FC = () => {
     };
 
     const predictImage = async (base64Image: string): Promise<void> => {
-        const apiKey = '7JDhTHZb92dqMa8JVme2';
-        const modelEndpoint = `https://detect.roboflow.com/leaffs/2?api_key=${apiKey}`;
+        // const apiKey = '7JDhTHZb92dqMa8JVme2';
+        // const modelEndpoint = `https://detect.roboflow.com/leaffs/2?api_key=${apiKey}`;
+
+        // const apiKey = `U40uJawaVtDsWkPf31Tm`;
+        // const modelEndpoint = `https://detect.roboflow.com/agrovision-hv9yk/1?api_key=${apiKey}`;
+
+        const apiKey = `U40uJawaVtDsWkPf31Tm`;
+        const modelEndpoint = `https://detect.roboflow.com/disease-detector-oqy70/1?api_key=${apiKey}`; // Good Accuracy
 
         setLoading(true);
         setPrediction(null);
@@ -72,7 +78,8 @@ const CameraScreen: React.FC = () => {
         const apiUrl = `${BASE_URL}/notifications`; // Replace with your Laravel API endpoint
         const payload = {
             name: name,
-            type: 'Disease', // Replace with your desired text
+            type: 'Disease',
+            cause: 'Plant diseases are mainly caused by pathogens like fungi, bacteria, viruses, and nematodes. These organisms infect plants, leading to issues such as wilting., leaf spots, root rots, and stunted growth.' // Replace with your desired text
         };
 
         try {

@@ -1,16 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Accordion from 'react-native-collapsible/Accordion';
-import { useNavigation } from '@react-navigation/native';
 import BASE_URL from '../API';
-
 
 const WeatherScreen: React.FC = () => {
     const [pesticides, setPesticides] = useState<any[]>([]);
     const [diseases, setDiseases] = useState<any[]>([]);
+    const [groupedDiseases, setGroupedDiseases] = useState<any[]>([]);
     const [activeSections, setActiveSections] = useState<number[]>([]);
-    const navigation = useNavigation();
 
     useEffect(() => {
         const fetchPesticides = async () => {
@@ -27,7 +25,19 @@ const WeatherScreen: React.FC = () => {
             try {
                 const response = await fetch(`${BASE_URL}/notifications`);
                 const data = await response.json();
+
+                const diseaseCounts = data.reduce((acc: any, disease: any) => {
+                    acc[disease.name] = (acc[disease.name] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const groupedData = Object.keys(diseaseCounts).map(name => ({
+                    name,
+                    count: diseaseCounts[name],
+                }));
+
                 setDiseases(data);
+                setGroupedDiseases(groupedData);
             } catch (error) {
                 console.error('Error fetching diseases:', error);
             }
@@ -37,15 +47,22 @@ const WeatherScreen: React.FC = () => {
         fetchDiseases();
     }, []);
 
-    const currentWeather = 'dry';
+    const currentWeather = 'rain';
 
     const filteredPesticides = (diseaseName: string) => {
-        return pesticides.filter(pesticide => pesticide.type === diseaseName && pesticide.application_time.toLowerCase() === currentWeather.toLowerCase());
+        return pesticides.filter(
+            pesticide =>
+                pesticide.type === diseaseName &&
+                pesticide.application_time.toLowerCase() === currentWeather.toLowerCase()
+        );
     };
 
     const renderHeader = (section: any, index: number, isActive: boolean) => {
         return (
             <View style={styles.accordionHeader}>
+                <View style={styles.diseaseCount}>
+                    <Text style={styles.countText}>{section.count}</Text>
+                </View>
                 <Text style={styles.diseaseName}>{section.name}</Text>
                 <Ionicons name={isActive ? 'chevron-up' : 'chevron-down'} size={20} color="#000" />
             </View>
@@ -57,9 +74,12 @@ const WeatherScreen: React.FC = () => {
             <View style={styles.accordionContent}>
                 {filteredPesticides(section.name).map((pesticide, index) => (
                     <View key={index} style={styles.pesticideItem}>
-                        <Text>{pesticide.name}</Text>
-                        <Text style={{ color: 'green' }}>
+                        <Text style={styles.pesticideName}>{pesticide.name}</Text>
+                        <Text style={styles.recommendation}>
                             Recommended for {currentWeather} conditions
+                        </Text>
+                        <Text style={styles.date}>
+                            Apply from {pesticide.application_date} to {pesticide.application_to} nov
                         </Text>
                     </View>
                 ))}
@@ -73,11 +93,10 @@ const WeatherScreen: React.FC = () => {
 
     return (
         <ScrollView style={styles.container}>
-            {/* Existing weather components */}
             <View style={styles.header}>
-                <Text style={styles.location}>Blantyre, 29 Jul</Text>
-                <Text style={styles.temperature}>16°C</Text>
-                <Text style={styles.details}>32°C / 17°C</Text>
+                <Text style={styles.location}>Nsanje, 29 Nov</Text>
+                <Text style={styles.temperature}>36°C</Text>
+                <Text style={styles.details}>40°C / 39°C</Text>
                 <Text style={styles.details}>{currentWeather}</Text>
                 <Text style={styles.sunset}>Sunset 5:29 PM</Text>
             </View>
@@ -96,8 +115,6 @@ const WeatherScreen: React.FC = () => {
                                 <Text>{time}</Text>
                             </View>
                         ))}
-
-                        
                     </View>
                     <Text style={styles.favColor}>Unfavourable Condition</Text>
                 </View>
@@ -105,14 +122,7 @@ const WeatherScreen: React.FC = () => {
             <View style={styles.forecast}>
                 <Text style={styles.sectionTitle}>Next 6 days</Text>
                 <View style={styles.forecastDays}>
-                    {[
-                        { day: 'Tue', temp: '30°C' },
-                        { day: 'Wed', temp: '30°C' },
-                        { day: 'Thu', temp: '28°C' },
-                        { day: 'Fri', temp: '28°C' },
-                        { day: 'Sat', temp: '30°C' },
-                        { day: 'Sun', temp: '31°C' },
-                    ].map((forecast, index) => (
+                    {[{ day: 'Tue', temp: '30°C' }, { day: 'Wed', temp: '30°C' }, { day: 'Thu', temp: '28°C' }, { day: 'Fri', temp: '28°C' }, { day: 'Sat', temp: '30°C' }, { day: 'Sun', temp: '31°C' }].map((forecast, index) => (
                         <View key={index} style={styles.forecastDay}>
                             <Ionicons name="ellipse" type="feather" size={24} color="orange" />
                             <Text>{forecast.day}</Text>
@@ -121,12 +131,10 @@ const WeatherScreen: React.FC = () => {
                     ))}
                 </View>
             </View>
-
-            {/* Disease and Pesticide recommendation accordion */}
             <View style={styles.pesticideRecommendations}>
-                <Text style={styles.sectionTitle}>Detected Diseases and Pesticide Application timing</Text>
+                <Text style={styles.sectionTitle}>Detected Diseases and Pesticide Application Timing</Text>
                 <Accordion
-                    sections={diseases}
+                    sections={groupedDiseases}
                     activeSections={activeSections}
                     renderHeader={renderHeader}
                     renderContent={renderContent}
@@ -221,21 +229,43 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 5,
     },
+    diseaseCount: {
+        backgroundColor: '#f0f8ff',
+        borderRadius: 20,
+        paddingHorizontal: 10,
+        marginRight: 10,
+    },
+    countText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#555',
+    },
+    diseaseName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        flex: 1,
+    },
     accordionContent: {
         padding: 14,
         margin: 6,
         backgroundColor: '#fff',
         borderRadius: 5,
-        fontSize: 19
-    },
-    diseaseName: {
-        fontSize: 16,
-        fontWeight: 'bold',
     },
     pesticideItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
+        flexDirection: 'column',
+        marginBottom: 20,
+    },
+    pesticideName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    recommendation: {
+        fontSize: 15,
+        color: 'green',
+    },
+    date: {
+        fontStyle: 'italic',
+        color: '#555',
     },
 });
 

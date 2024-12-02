@@ -88,13 +88,16 @@ export default function Home({ navigation }: any) {
                         </View>
                     </Pressable>
 
-
+                    <Pressable onPress={()=>{
+                        navigation.navigate('Camera')
+                    }}>
                     <View style={styles.iconFeatures}>
                         <Ionicons name="leaf" size={40} color='green' />
                         <Text style={styles.direction}>
-                            weed Detection
+                            Detection
                         </Text>
                     </View>
+                    </Pressable>
                 </View>
 
 
