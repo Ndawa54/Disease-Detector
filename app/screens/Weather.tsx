@@ -47,7 +47,7 @@ const WeatherScreen: React.FC = () => {
         fetchDiseases();
     }, []);
 
-    const currentWeather = 'rain';
+    const currentWeather = 'dry';
 
     const filteredPesticides = (diseaseName: string) => {
         return pesticides.filter(

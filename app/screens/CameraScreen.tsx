@@ -42,6 +42,9 @@ const CameraScreen: React.FC = () => {
         const apiKey = `U40uJawaVtDsWkPf31Tm`;
         const modelEndpoint = `https://detect.roboflow.com/disease-detector-oqy70/1?api_key=${apiKey}`; // Good Accuracy
 
+        // const apiKey = `U40uJawaVtDsWkPf31Tm`;
+        // const modelEndpoint = `https://detect.roboflow.com/tomato-nixik-x7hgu/1?api_key=${apiKey}`; //tomato
+
         setLoading(true);
         setPrediction(null);
 
