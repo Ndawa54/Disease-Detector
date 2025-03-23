@@ -11,7 +11,7 @@ export default function Usage({ route }: any) {
     const fetchData = async () => {
      
         try {
-            const response = await fetch(`${BASE_URL}/pesticides`);
+            const response = await fetch(`http://192.168.91.123:8000/api/pesticides`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }

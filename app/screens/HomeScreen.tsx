@@ -1,16 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Directions } from "react-native-gesture-handler";
 import { JumpingTransition } from "react-native-reanimated";
 
 const img = require('../../assets/images/dark.jpg')
+const h_img = require('../../assets/images/images.jpg')
+
 export default function Home({ navigation }: any) {
     const [diseaseCount, setDiseaseCount] = useState(0);
     const [weedCount, setWeedCount] = useState(0);
 
     const fetchData = async () => {
-        const response = await fetch(`http://192.168.80.123:8000/api/notification-counts`);
+        const response = await fetch(`http://192.168.91.123:8000/api/notification-counts`);
         const result = await response.json();
 
         setDiseaseCount(result.diseases);
@@ -23,9 +25,17 @@ export default function Home({ navigation }: any) {
 
     return (
         <ScrollView style={styles.container}>
+
+
             <View>
-                <Text style={styles.welcomeHeader}>Welcome to Smart Farm Tech</Text>
-                <Text style={styles.headerDescription}>Improving farm productivity with advanced weed and disease detection technology.</Text>
+                <ImageBackground source={h_img} style={styles.headerImage}>
+                    <View style={styles.overlay}>
+                        <Text style={styles.welcomeHeader}>Welcome to Smart Farm Tech</Text>
+                        <Text style={styles.headerDescription}>
+                            Improving farm productivity with advanced weed and disease detection technology.
+                        </Text>
+                    </View>
+                </ImageBackground>
             </View>
 
             <Pressable onPress={() => {
@@ -88,15 +98,15 @@ export default function Home({ navigation }: any) {
                         </View>
                     </Pressable>
 
-                    <Pressable onPress={()=>{
+                    <Pressable onPress={() => {
                         navigation.navigate('Camera')
                     }}>
-                    <View style={styles.iconFeatures}>
-                        <Ionicons name="leaf" size={40} color='green' />
-                        <Text style={styles.direction}>
-                            Detection
-                        </Text>
-                    </View>
+                        <View style={styles.iconFeatures}>
+                            <Ionicons name="leaf" size={40} color='green' />
+                            <Text style={styles.direction}>
+                                Detection
+                            </Text>
+                        </View>
                     </Pressable>
                 </View>
 
@@ -113,17 +123,35 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f5f5f5'
     },
+
+    headerImage: {
+        width: '100%',
+        height: 200, // Adjust as needed
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background for readability
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 10,
+    },
     welcomeHeader: {
         fontWeight: 'bold',
         fontSize: 25,
         textAlign: 'center',
         padding: 10,
         marginTop: 20,
+        color: '#fff'
     },
     headerDescription: {
         fontSize: 17,
         textAlign: 'center',
-        padding: 14
+        padding: 14,
+        color: '#fff'
     },
     card: {
 

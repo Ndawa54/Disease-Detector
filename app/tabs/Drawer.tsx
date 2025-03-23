@@ -6,11 +6,13 @@ import ButtomTabs from './ButtomTabs';
 import CustomHeader from './CustomeDrawer'; // Import the custom header component
 import WeatherScreen from '../screens/Weather';
 import Login from '../components/Login';
+import { NavigationContainer } from '@react-navigation/native';
 
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
     return (
+        <NavigationContainer>
         <Drawer.Navigator
             screenOptions={{
                 header: () => <CustomHeader />, // Use the custom header component here
@@ -28,5 +30,6 @@ export default function DrawerNavigator() {
             <Drawer.Screen name="Login" component={Login} />
             
         </Drawer.Navigator>
+        </NavigationContainer>
     );
 }

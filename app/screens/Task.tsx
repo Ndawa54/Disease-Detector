@@ -24,7 +24,7 @@ export default function Task() {
     const fetchNotifications = async () => {
         setIsRefreshing(true); // Set refreshing to true when fetching data
         try {
-            const response = await fetch(`${BASE_URL}/notifications`); // Replace with your API endpoint
+            const response = await fetch(`http://192.168.91.123:8000/api/notifications`); // Replace with your API endpoint
             const data = await response.json();
             setNotifications(data); // Assuming data is an array of notification objects
         } catch (error) {
@@ -35,7 +35,7 @@ export default function Task() {
     // Fetch critical levels from the criticals table
     const fetchCriticals = async () => {
         try {
-            const response = await fetch(`${BASE_URL}/criticals`); // Replace with your API endpoint
+            const response = await fetch(`http://192.168.91.123:8000/api/criticals`); // Replace with your API endpoint
             const data = await response.json();
             setCriticals(data); // Assuming data is an array of critical objects
         } catch (error) {

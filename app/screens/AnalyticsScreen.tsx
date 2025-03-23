@@ -30,7 +30,7 @@ export default function Analytics({ navigation }: any) {
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         datasets: [
             {
-                data: [30, 10, 2, 10, 0, 0, 10],
+                data: [10, 5, 20, 10, 6, 7, 10],
             },
         ],
     };
@@ -47,7 +47,7 @@ export default function Analytics({ navigation }: any) {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${BASE_URL}/notifications`); // Replace with your API endpoint
+            const response = await fetch(`http://192.168.91.123:8000/api/notifications`); // Replace with your API endpoint
             const data = await response.json();
 
             const counts = data.reduce((acc: any, item: any) => {

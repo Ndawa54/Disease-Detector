@@ -13,7 +13,7 @@ const WeatherScreen: React.FC = () => {
     useEffect(() => {
         const fetchPesticides = async () => {
             try {
-                const response = await fetch(`${BASE_URL}/pesticides`);
+                const response = await fetch(`http://192.168.91.123:8000/api/pesticides`);
                 const data = await response.json();
                 setPesticides(data);
             } catch (error) {
@@ -23,7 +23,7 @@ const WeatherScreen: React.FC = () => {
 
         const fetchDiseases = async () => {
             try {
-                const response = await fetch(`${BASE_URL}/notifications`);
+                const response = await fetch(`http://192.168.91.123:8000/api/notifications`);
                 const data = await response.json();
 
                 const diseaseCounts = data.reduce((acc: any, disease: any) => {
@@ -47,7 +47,7 @@ const WeatherScreen: React.FC = () => {
         fetchDiseases();
     }, []);
 
-    const currentWeather = 'dry';
+    const currentWeather = 'rain';
 
     const filteredPesticides = (diseaseName: string) => {
         return pesticides.filter(

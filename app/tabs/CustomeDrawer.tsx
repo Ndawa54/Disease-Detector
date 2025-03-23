@@ -16,7 +16,7 @@ const CustomHeader: React.FC = () => {
                 <Ionicons name='menu' size={30}/>
             </TouchableOpacity>
             <Image
-                source={require('../../assets/images/logo.png')} // Replace with your logo path
+                source={require('../../assets/images/misesa.png')} // Replace with your logo path
                 style={styles.logo}
             />
         </View>
@@ -29,14 +29,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        height: 60, // Adjust height as needed
+        height: 70, // Adjust height as needed
         backgroundColor: 'white',
         padding: 10
     },
    
     logo: {
         width: 100, // Adjust width as needed
-        height: 50, // Adjust height as needed
+        height: 58, // Adjust height as needed
         
     },
 });

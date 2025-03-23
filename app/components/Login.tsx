@@ -7,10 +7,11 @@ import {
   Image,
   Text,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import BASE_URL from "../API";
 
-const img = require("../../assets/images/logo.png");
+const img = require("../../assets/images/misesa.png");
 
 export default function Login({ navigation }: any) {
   const [username, setUsername] = useState("");
@@ -30,7 +31,7 @@ export default function Login({ navigation }: any) {
     if (validateForm()) {
       try {
         setLoading(true);
-        const response = await fetch(`${BASE_URL}/logins`, {
+        const response = await fetch(`http://192.168.91.123:8000/api/logins`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -77,7 +78,8 @@ export default function Login({ navigation }: any) {
       />
       {errors.password && <Text style={styles.errors}>{errors.password}</Text>}
       {errors.general && <Text style={styles.errors}>{errors.general}</Text>}
-      <Pressable onPress={handleSubmit} disabled={loading}>
+      {loading && <ActivityIndicator size="large" color="#0000ff" />}
+      <Pressable onPress={handleSubmit} disabled={loading} style={styles.button}>
         <Text style={styles.text}>
           {loading ? "Logging in..." : "Login"}
         </Text>
@@ -88,6 +90,12 @@ export default function Login({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  button: {
+    backgroundColor: "#ADD8E6",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -104,7 +112,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: 190,
-    height: 100,
+    height: 140,
     alignSelf: "center",
     marginVertical: 30,
   },
