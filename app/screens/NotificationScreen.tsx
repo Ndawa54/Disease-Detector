@@ -19,7 +19,7 @@ export default function Notification({ navigation }: { navigation: any }) {
         setIsFetching(true);
         try {
             const response = await fetch(`http://192.168.91.123:8000/api/notifications`);
-            console.log("Fetching from:", `${BASE_URL}/notifications`);
+            
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
